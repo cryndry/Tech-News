@@ -4,6 +4,7 @@ import com.technews.data.News
 import com.technews.data.NewsViewModel
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,13 +31,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewModelScope
 import coil.compose.rememberAsyncImagePainter
+import com.technews.LocalNavController
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 @Composable
-fun NewsScreen(newsViewModel: NewsViewModel, modifier: Modifier = Modifier) {
+fun NewsScreen(newsViewModel: NewsViewModel) {
     val newsFetchState = newsViewModel.fetchStatus.value
     val lazyListState = rememberLazyListState()
+    val navController = LocalNavController.current
 
     Scaffold { innerPadding ->
         Box(modifier = Modifier
@@ -57,7 +64,19 @@ fun NewsScreen(newsViewModel: NewsViewModel, modifier: Modifier = Modifier) {
                         modifier = Modifier.fillMaxSize().padding(16.dp)
                     ) {
                         itemsIndexed(newsFetchState.news) { index, newsItem ->
-                            NewsScreenItem(newsItem)
+                            NewsScreenItem(newsItem) {
+                                newsViewModel.viewModelScope.launch {
+                                    withContext(Dispatchers.IO) {
+                                        newsViewModel.getNewsDetail(newsItem.url)
+                                        withContext(Dispatchers.Main) {
+                                            println("News Screen fetch")
+                                            println(newsViewModel.newsItemDetails.value.map { item -> item.content })
+                                            navController.currentBackStackEntry?.savedStateHandle?.set("news", newsItem)
+                                            navController.navigate(ScreenManager.NewsDetailScreen.route)
+                                        }
+                                    }
+                                }
+                            }
                         }
                         item() {
                             BottomLoadingIndicator(lazyListState, {newsViewModel.getNextPage()})
@@ -70,9 +89,12 @@ fun NewsScreen(newsViewModel: NewsViewModel, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun NewsScreenItem(newsItem: News) {
+fun NewsScreenItem(newsItem: News, onClick: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+            .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         shape = RoundedCornerShape(20.dp),

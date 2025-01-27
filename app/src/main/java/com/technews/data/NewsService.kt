@@ -7,15 +7,21 @@ import okhttp3.logging.HttpLoggingInterceptor
 import org.jsoup.Jsoup
 import retrofit2.Retrofit
 import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 
 interface NewsServiceInterface {
     @GET("yapay-zeka")
     suspend fun getNews(@Query("s") page: Int? = null): ResponseBody
+
+    @GET("{path}")
+    suspend fun getNewsDetail(@Path("path") url: String): ResponseBody
 }
 
 object NewsService {
+    val baseUrl = "https://www.webtekno.com/"
+
     private fun addLoggingInterceptor(builder: OkHttpClient.Builder) {
         val interceptorLogging = HttpLoggingInterceptor()
 //        interceptorLogging.setLevel(if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE)
@@ -30,7 +36,7 @@ object NewsService {
         addLoggingInterceptor(client)
 
         val retrofit = Retrofit.Builder()
-            .baseUrl("https://www.webtekno.com/")
+            .baseUrl(baseUrl)
             .client(client.build())
             .build()
 
@@ -52,10 +58,30 @@ object NewsService {
             )
         }
 
-        println("******************")
-        println(newsItems)
-        println("******************")
-
         return newsItems
+    }
+
+    suspend fun getNewsDetail(newsUrl: String): Array<NewsDetailItem> {
+        var items = arrayOf<NewsDetailItem>()
+        val pageHtml: String = getService().getNewsDetail(newsUrl).string()
+        val document = Jsoup.parse(pageHtml)
+        val pTags = document.select(".content-body__detail > p")
+
+        pTags.forEach { pTag ->
+            if (pTag.selectFirst("img") != null) {
+                var imgSrc = pTag.selectFirst("img")!!.attr("data-original")
+                if (imgSrc.startsWith("/")) {
+                    imgSrc = baseUrl + imgSrc.substring(1)
+                    println(imgSrc)
+                }
+
+                items += NewsDetailItem("img", imgSrc)
+            } else {
+                items += NewsDetailItem("p", pTag.text())
+            }
+        }
+
+        println(items.map { item -> item.content })
+        return items
     }
 }
