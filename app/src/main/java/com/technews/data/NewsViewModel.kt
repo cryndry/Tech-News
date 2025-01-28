@@ -30,7 +30,7 @@ class NewsViewModel: ViewModel() {
                 )
 
                 withContext(Dispatchers.IO) {
-                    val fetchedNews = NewsService.getNewsWebtekno(pageCount)
+                    val fetchedNews = NewsService.getNews(pageCount)
                     if (fetchedNews.isNotEmpty()) {
                         withContext(Dispatchers.Main) {
                             _fetchStatus.value = _fetchStatus.value.copy(
