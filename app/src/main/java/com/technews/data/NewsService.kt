@@ -1,6 +1,5 @@
 package com.technews.data
 
-import com.technews.BuildConfig
 import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
 import okhttp3.logging.HttpLoggingInterceptor
@@ -11,7 +10,7 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 
-interface NewsServiceInterface {
+interface WebteknoServiceInterface {
     @GET("yapay-zeka")
     suspend fun getNews(@Query("s") page: Int? = null): ResponseBody
 
@@ -20,34 +19,36 @@ interface NewsServiceInterface {
 }
 
 object NewsService {
-    val baseUrl = "https://www.webtekno.com/"
-
     private fun addLoggingInterceptor(builder: OkHttpClient.Builder) {
         val interceptorLogging = HttpLoggingInterceptor()
-//        interceptorLogging.setLevel(if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE)
+//        interceptorLogging.setLevel(
+//          if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
+//          else HttpLoggingInterceptor.Level.NONE
+//        )
 
         builder.addInterceptor(interceptorLogging)
     }
 
-    fun getService(): NewsServiceInterface {
-        if (newsService != null) return newsService!!
+    fun getWebteknoNewsService(): WebteknoServiceInterface {
+        if (webteknoNewsService != null) return webteknoNewsService!!
 
         val client = OkHttpClient().newBuilder()
         addLoggingInterceptor(client)
 
         val retrofit = Retrofit.Builder()
-            .baseUrl(baseUrl)
+            .baseUrl(webteknoBaseUrl)
             .client(client.build())
             .build()
 
-        newsService = retrofit.create(NewsServiceInterface::class.java)
-        return newsService!!
+        webteknoNewsService = retrofit.create(WebteknoServiceInterface::class.java)
+        return webteknoNewsService!!
     }
 
-    private var newsService: NewsServiceInterface? = null
+    const val webteknoBaseUrl = "https://www.webtekno.com/"
+    private var webteknoNewsService: WebteknoServiceInterface? = null
 
-    suspend fun getNews(page: Int): List<News> {
-        val pageHtml: String = getService().getNews(page = if (page > 1) page else null).string()
+    suspend fun getNewsWebtekno(page: Int): List<News> {
+        val pageHtml: String = getWebteknoNewsService().getNews(page = if (page > 1) page else null).string()
         val document = Jsoup.parse(pageHtml)
         val newsItemTags = document.select(".content-timeline__list > .content-timeline__item")
         val newsItems = newsItemTags.map { newsItem ->
@@ -61,9 +62,9 @@ object NewsService {
         return newsItems
     }
 
-    suspend fun getNewsDetail(newsUrl: String): Array<NewsDetailItem> {
+    suspend fun getNewsDetailWebtekno(newsUrl: String): Array<NewsDetailItem> {
         var items = arrayOf<NewsDetailItem>()
-        val pageHtml: String = getService().getNewsDetail(newsUrl).string()
+        val pageHtml: String = getWebteknoNewsService().getNewsDetail(newsUrl).string()
         val document = Jsoup.parse(pageHtml)
         val pTags = document.select(".content-body__detail > p")
 
@@ -71,8 +72,7 @@ object NewsService {
             if (pTag.selectFirst("img") != null) {
                 var imgSrc = pTag.selectFirst("img")!!.attr("data-original")
                 if (imgSrc.startsWith("/")) {
-                    imgSrc = baseUrl + imgSrc.substring(1)
-                    println(imgSrc)
+                    imgSrc = webteknoBaseUrl + imgSrc.substring(1)
                 }
 
                 items += NewsDetailItem("img", imgSrc)
@@ -81,7 +81,6 @@ object NewsService {
             }
         }
 
-        println(items.map { item -> item.content })
         return items
     }
 }

@@ -15,9 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -42,7 +40,6 @@ import kotlinx.coroutines.withContext
 @Composable
 fun NewsScreen(newsViewModel: NewsViewModel) {
     val newsFetchState = newsViewModel.fetchStatus.value
-    val lazyListState = rememberLazyListState()
     val navController = LocalNavController.current
 
     Scaffold { innerPadding ->
@@ -60,7 +57,6 @@ fun NewsScreen(newsViewModel: NewsViewModel) {
                 }
                 else -> {
                     LazyColumn(
-                        state = lazyListState,
                         modifier = Modifier.fillMaxSize().padding(16.dp)
                     ) {
                         itemsIndexed(newsFetchState.news) { index, newsItem ->
@@ -69,8 +65,6 @@ fun NewsScreen(newsViewModel: NewsViewModel) {
                                     withContext(Dispatchers.IO) {
                                         newsViewModel.getNewsDetail(newsItem.url)
                                         withContext(Dispatchers.Main) {
-                                            println("News Screen fetch")
-                                            println(newsViewModel.newsItemDetails.value.map { item -> item.content })
                                             navController.currentBackStackEntry?.savedStateHandle?.set("news", newsItem)
                                             navController.navigate(ScreenManager.NewsDetailScreen.route)
                                         }
@@ -78,8 +72,10 @@ fun NewsScreen(newsViewModel: NewsViewModel) {
                                 }
                             }
                         }
-                        item() {
-                            BottomLoadingIndicator(lazyListState, {newsViewModel.getNextPage()})
+                        item {
+                            BottomLoadingIndicator {
+                                newsViewModel.getNextPage()
+                            }
                         }
                     }
                 }
@@ -113,7 +109,7 @@ fun NewsScreenItem(newsItem: News, onClick: () -> Unit) {
 }
 
 @Composable
-fun BottomLoadingIndicator(lazyListState: LazyListState, callback: () -> Unit) {
+fun BottomLoadingIndicator(callback: () -> Unit) {
     Row (
         modifier = Modifier.height(40.dp).fillMaxWidth(),
         horizontalArrangement = Arrangement.Center,
@@ -121,18 +117,7 @@ fun BottomLoadingIndicator(lazyListState: LazyListState, callback: () -> Unit) {
         CircularProgressIndicator()
     }
 
-    LaunchedEffect(lazyListState) {
-        val layoutInfo = lazyListState.layoutInfo
-        val totalItems = layoutInfo.totalItemsCount
-        val visibleItems = layoutInfo.visibleItemsInfo
-        val lastVisibleItemIndex = visibleItems.lastOrNull()?.index ?: 0
-
-        println(totalItems)
-        println(visibleItems)
-        println(lastVisibleItemIndex)
-
-        if (totalItems > 0 && lastVisibleItemIndex >= totalItems - 5) {
-            callback()
-        }
+    LaunchedEffect(null) {
+        callback()
     }
 }
