@@ -1,5 +1,9 @@
 package com.technews.data
 
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
 import okhttp3.logging.HttpLoggingInterceptor
@@ -102,16 +106,19 @@ object NewsService {
     const val dhaberBaseUrl = "https://www.donanimhaber.com/"
     private var dhaberNewsService: DHaberServiceInterface? = null
 
-    suspend fun getNews(page: Int): List<News> {
-        val fetchedNewsWebtekno = getNewsWebtekno(page)
-        val fetchedNewsDHaber = getNewsDHaber(page)
+    suspend fun getNews(page: Int): List<News> = coroutineScope {
+        val fetchedNewsDHaberDeferred = async { getNewsDHaber(page) }
+        val fetchedNewsWebteknoDeferred = async { getNewsWebtekno(page) }
 
-        val allNewsSorted = (fetchedNewsWebtekno + fetchedNewsDHaber)
+        val results = awaitAll(fetchedNewsDHaberDeferred, fetchedNewsWebteknoDeferred)
+
+        val fetchedNewsDHaber = results[0]
+        val fetchedNewsWebtekno = results[1]
+
+        (fetchedNewsDHaber + fetchedNewsWebtekno)
             .sortedByDescending { news ->
                 news.date.toEpochSecond()
             }
-
-        return allNewsSorted
     }
 
     private suspend fun getNewsWebtekno(page: Int): List<News> {
