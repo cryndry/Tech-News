@@ -8,7 +8,13 @@ import retrofit2.Retrofit
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
+
+enum class WebSource {
+    Webtekno,
+}
 
 interface WebteknoServiceInterface {
     @GET("yapay-zeka")
@@ -19,6 +25,19 @@ interface WebteknoServiceInterface {
 }
 
 object NewsService {
+    fun parseDate(dateString: String, source: WebSource): ZonedDateTime {
+        when (source) {
+            WebSource.Webtekno -> {
+                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ")
+                return ZonedDateTime.parse(dateString, formatter)
+            }
+            else -> {
+                // Placeholder
+                return ZonedDateTime.now()
+            }
+        }
+    }
+
     private fun addLoggingInterceptor(builder: OkHttpClient.Builder) {
         val interceptorLogging = HttpLoggingInterceptor()
 //        interceptorLogging.setLevel(
@@ -56,6 +75,10 @@ object NewsService {
                 title = newsItem.selectFirst("h3.content-timeline__detail__title")?.text() ?: "",
                 url = newsItem.selectFirst("a.content-timeline__link")?.attr("href") ?: "",
                 image = newsItem.selectFirst("img.content-timeline__media__image")?.attr("data-original") ?: "",
+                date = parseDate(
+                    newsItem.selectFirst(".content-timeline__time__timeago > time")!!.attr("datetime"),
+                    WebSource.Webtekno),
+                source = "Webtekno",
             )
         }
 

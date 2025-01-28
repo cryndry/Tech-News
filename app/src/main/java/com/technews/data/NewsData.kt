@@ -2,7 +2,7 @@ package com.technews.data
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
-import java.util.Date
+import java.time.ZonedDateTime
 
 
 data class FetchStatus(
@@ -16,8 +16,8 @@ data class News(
     val title: String,
     val url: String,
     val image: String,
-    val date: Date? = null,
-    val source: String? = null,
+    val date: ZonedDateTime,
+    val source: String,
 ): Parcelable
 
 

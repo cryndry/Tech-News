@@ -28,13 +28,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewModelScope
 import coil.compose.rememberAsyncImagePainter
 import com.technews.LocalNavController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.format.DateTimeFormatter
 
 
 @Composable
@@ -103,7 +107,26 @@ fun NewsScreenItem(newsItem: News, onClick: () -> Unit) {
                 contentScale = ContentScale.FillWidth,
             )
             Spacer(Modifier.height(8.dp))
-            Text(newsItem.title)
+            Text(
+                newsItem.title,
+                style = TextStyle(
+                    fontSize = 20.sp,
+                    lineHeight = 24.sp,
+                    fontWeight = FontWeight.W400,
+                ),
+            )
+            Spacer(Modifier.height(16.dp))
+            Row {
+                newsItem.source.toString()
+            }
+            Text(
+                newsItem.date.format(DateTimeFormatter.ofPattern("dd MM yyyy")),
+                style = TextStyle(
+                    fontSize = 16.sp,
+                    lineHeight = 20.sp,
+                    color = Color.Black.copy(alpha = 0.6f)
+                ),
+            )
         }
     }
 }
