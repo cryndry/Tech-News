@@ -28,12 +28,14 @@ fun NewsDetailScreen(newsItem: News, newsViewModel: NewsViewModel) {
     val scrollState = rememberScrollState()
 
     Scaffold { innerPadding ->
-        Box (
-            modifier = Modifier.fillMaxSize()
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
                 .padding(innerPadding)
         ) {
             Box(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
                     .clip(RoundedCornerShape(40.dp, 40.dp))
                     .shadow(
                         elevation = 1.dp,
@@ -42,12 +44,13 @@ fun NewsDetailScreen(newsItem: News, newsViewModel: NewsViewModel) {
 
                     )
             ) {
-                Column (
-                    modifier = Modifier.fillMaxSize()
-                        .padding(horizontal = 16.dp)
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp, 0.dp, 16.dp, 16.dp)
                         .verticalScroll(scrollState)
                 ) {
-                    DynamicHeightImage(newsItem.image)
+                    DynamicHeightImage(newsItem.image, maxHeight = 200)
                     Text(
                         newsItem.title,
                         modifier = Modifier.padding(vertical = 16.dp),
@@ -55,18 +58,20 @@ fun NewsDetailScreen(newsItem: News, newsViewModel: NewsViewModel) {
                     )
 
                     newsDetailsState.map { newsDetailsItem ->
-                        when (newsDetailsItem.tag) {
-                            "img" -> {
-                                DynamicHeightImage(newsDetailsItem.content)
+                        if (newsDetailsItem.content.isNotBlank())
+                            when (newsDetailsItem.tag) {
+                                "img" -> {
+                                    DynamicHeightImage(newsDetailsItem.content)
+                                }
+
+                                "p" -> {
+                                    Text(
+                                        newsDetailsItem.content,
+                                        modifier = Modifier.padding(vertical = 8.dp),
+                                        fontSize = 16.sp,
+                                    )
+                                }
                             }
-                            "p" -> {
-                                Text(
-                                    newsDetailsItem.content,
-                                    modifier = Modifier.padding(vertical = 8.dp),
-                                    fontSize = 16.sp,
-                                )
-                            }
-                        }
                     }
                 }
             }
