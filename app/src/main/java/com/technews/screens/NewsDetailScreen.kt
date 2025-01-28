@@ -36,7 +36,7 @@ fun NewsDetailScreen(newsItem: News, newsViewModel: NewsViewModel) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .clip(RoundedCornerShape(40.dp, 40.dp))
+                    .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
                     .shadow(
                         elevation = 1.dp,
                         shape = RoundedCornerShape(50.dp, 50.dp),
@@ -50,7 +50,7 @@ fun NewsDetailScreen(newsItem: News, newsViewModel: NewsViewModel) {
                         .padding(16.dp, 0.dp, 16.dp, 16.dp)
                         .verticalScroll(scrollState)
                 ) {
-                    DynamicHeightImage(newsItem.image, maxHeight = 200)
+                    DynamicHeightImage(newsItem.image, maxHeight = 160)
                     Text(
                         newsItem.title,
                         modifier = Modifier.padding(vertical = 16.dp),

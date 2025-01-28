@@ -51,10 +51,21 @@ class NewsViewModel: ViewModel() {
         }
     }
 
-    fun getNewsDetail(url: String) {
+    fun getNewsDetail(url: String, source: WebSource) {
         viewModelScope.launch {
+            println(url)
+            println(source)
             try {
-                 _newsItemDetails.value = NewsService.getNewsDetailWebtekno(url)
+                when (source) {
+                    WebSource.Webtekno -> {
+                        _newsItemDetails.value = NewsService.getNewsDetailWebtekno(url)
+                    }
+                    WebSource.DonanimHaber -> {
+                        println(url)
+                        _newsItemDetails.value = NewsService.getNewsDetailDHaber(url)
+                        println(_newsItemDetails.value.map { item -> item.content })
+                    }
+                }
             } catch (e: Exception) {
                 _newsItemDetails.value = arrayOf()
             }

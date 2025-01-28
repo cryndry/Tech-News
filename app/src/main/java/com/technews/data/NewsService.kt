@@ -31,6 +31,9 @@ interface WebteknoServiceInterface {
 interface DHaberServiceInterface {
     @GET("yapay-zeka")
     suspend fun getNews(@Query("sayfa") page: Int? = null): ResponseBody
+
+    @GET("{path}")
+    suspend fun getNewsDetail(@Path("path") url: String): ResponseBody
 }
 
 object NewsService {
@@ -123,7 +126,7 @@ object NewsService {
                 date = parseDate(
                     newsItem.selectFirst(".content-timeline__time__timeago > time")!!.attr("datetime"),
                     WebSource.Webtekno),
-                source = WebSource.Webtekno.name,
+                source = WebSource.Webtekno,
             )
         }
 
@@ -169,10 +172,37 @@ object NewsService {
                 date = parseDate(
                     newsItem.selectFirst(".govde .bilgi > span[data-title]")!!.attr("data-title"),
                     WebSource.DonanimHaber),
-                source = WebSource.DonanimHaber.name,
+                source = WebSource.DonanimHaber,
             )
         }
 
         return newsItems
+    }
+
+    suspend fun getNewsDetailDHaber(newsUrl: String): Array<NewsDetailItem> {
+        var items = arrayOf<NewsDetailItem>()
+        val pageHtml: String = getDHaberNewsService().getNewsDetail(newsUrl).string()
+        val document = Jsoup.parse(pageHtml)
+        val relatedTags = document.selectFirst("article.post > section.yazi")!!.children()
+
+        relatedTags.forEach { tag ->
+            when (tag.tagName()) {
+                "figure" -> {
+                    var imgSrc = tag.selectFirst("img")!!.attr("src")
+                    if (imgSrc.startsWith("/")) {
+                        imgSrc = dhaberBaseUrl + imgSrc.substring(1)
+                    }
+                    items += NewsDetailItem("img", imgSrc)
+
+                    val figcaption = tag.selectFirst("figcaption")!!.text()
+                    items += NewsDetailItem("p", figcaption)
+                }
+                "p" -> {
+                    items += NewsDetailItem("p", tag.text())
+                }
+            }
+        }
+
+        return items
     }
 }

@@ -67,7 +67,7 @@ fun NewsScreen(newsViewModel: NewsViewModel) {
                             NewsScreenItem(newsItem) {
                                 newsViewModel.viewModelScope.launch {
                                     withContext(Dispatchers.IO) {
-                                        newsViewModel.getNewsDetail(newsItem.url)
+                                        newsViewModel.getNewsDetail(newsItem.url, newsItem.source)
                                         withContext(Dispatchers.Main) {
                                             navController.currentBackStackEntry?.savedStateHandle?.set("news", newsItem)
                                             navController.navigate(ScreenManager.NewsDetailScreen.route)
@@ -131,7 +131,7 @@ fun NewsScreenItem(newsItem: News, onClick: () -> Unit) {
                     style = secondaryTextStyle,
                 )
                 Text(
-                    newsItem.source,
+                    newsItem.source.name,
                     style = secondaryTextStyle,
                 )
             }

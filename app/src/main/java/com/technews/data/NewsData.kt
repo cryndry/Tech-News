@@ -17,7 +17,7 @@ data class News(
     val url: String,
     val image: String,
     val date: ZonedDateTime,
-    val source: String,
+    val source: WebSource,
 ): Parcelable
 
 
