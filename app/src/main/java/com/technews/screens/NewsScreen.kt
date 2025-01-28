@@ -116,17 +116,25 @@ fun NewsScreenItem(newsItem: News, onClick: () -> Unit) {
                 ),
             )
             Spacer(Modifier.height(16.dp))
-            Row {
-                newsItem.source.toString()
-            }
-            Text(
-                newsItem.date.format(DateTimeFormatter.ofPattern("dd MM yyyy")),
-                style = TextStyle(
+            Row (
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                val secondaryTextStyle = TextStyle(
                     fontSize = 16.sp,
                     lineHeight = 20.sp,
-                    color = Color.Black.copy(alpha = 0.6f)
-                ),
-            )
+                    color = Color.Black.copy(alpha = 0.6f),
+                )
+
+                Text(
+                    newsItem.date.format(DateTimeFormatter.ofPattern("dd MM yyyy")),
+                    style = secondaryTextStyle,
+                )
+                Text(
+                    newsItem.source,
+                    style = secondaryTextStyle,
+                )
+            }
         }
     }
 }
